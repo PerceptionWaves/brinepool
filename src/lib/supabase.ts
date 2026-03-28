@@ -3,37 +3,35 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 let _supabase: SupabaseClient | null = null;
 let _supabaseAdmin: SupabaseClient | null = null;
 
-export function getSupabase() {
-  if (!_supabase) {
-    _supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-  }
-  return _supabase;
-}
-
-export function getSupabaseAdmin() {
-  if (!_supabaseAdmin) {
-    _supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_KEY!
-    );
-  }
-  return _supabaseAdmin;
-}
-
-// Keep these for convenience — they call the lazy getters
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const supabase = new Proxy({} as SupabaseClient, {
-  get(_, prop) {
-    return (getSupabase() as any)[prop];
+export const supabase = {
+  get client() {
+    if (!_supabase) {
+      _supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+    }
+    return _supabase;
   },
-});
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const supabaseAdmin = new Proxy({} as SupabaseClient, {
-  get(_, prop) {
-    return (getSupabaseAdmin() as any)[prop];
+  from(table: string) {
+    return this.client.from(table);
   },
-});
+};
+
+export const supabaseAdmin = {
+  get client() {
+    if (!_supabaseAdmin) {
+      _supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_KEY!
+      );
+    }
+    return _supabaseAdmin;
+  },
+  from(table: string) {
+    return this.client.from(table);
+  },
+  rpc(fn: string, params?: Record<string, unknown>) {
+    return this.client.rpc(fn, params);
+  },
+};
