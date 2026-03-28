@@ -1,37 +1,22 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 
-let _supabase: SupabaseClient | null = null;
-let _supabaseAdmin: SupabaseClient | null = null;
+export function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
 
-export const supabase = {
-  get client() {
-    if (!_supabase) {
-      _supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
-    }
-    return _supabase;
-  },
-  from(table: string) {
-    return this.client.from(table);
-  },
-};
+export function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_KEY!
+  );
+}
 
+// Convenience aliases
+export const supabase = { from: (t: string) => getSupabase().from(t) };
 export const supabaseAdmin = {
-  get client() {
-    if (!_supabaseAdmin) {
-      _supabaseAdmin = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_KEY!
-      );
-    }
-    return _supabaseAdmin;
-  },
-  from(table: string) {
-    return this.client.from(table);
-  },
-  rpc(fn: string, params?: Record<string, unknown>) {
-    return this.client.rpc(fn, params);
-  },
+  from: (t: string) => getSupabaseAdmin().from(t),
+  rpc: (fn: string, params?: Record<string, unknown>) => getSupabaseAdmin().rpc(fn, params),
 };
