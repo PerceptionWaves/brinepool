@@ -9,6 +9,7 @@ export async function GET() {
     const { data, error } = await supabaseAdmin
       .from("projects")
       .select("*")
+      .order("agent_count", { ascending: false })
       .order("votes", { ascending: false })
       .order("last_activity", { ascending: false });
 
