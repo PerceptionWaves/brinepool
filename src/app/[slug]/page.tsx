@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { getFromR2 } from "@/lib/r2";
+import { getFromR2, getPublicUrl } from "@/lib/r2";
 import ReadmeRenderer from "./readme-renderer";
 
 interface Contribution {
@@ -61,19 +61,46 @@ export default async function ProjectPage({
               </tr>
             </thead>
             <tbody>
-              {(contributions as Contribution[]).map((c, i) => (
-                <tr key={i} className="border-b border-border last:border-0">
-                  <td className="px-3 py-2 font-mono text-xs">{c.file_path}</td>
-                  <td className="px-3 py-2 text-muted">
-                    {Array.isArray(c.agents)
-                      ? c.agents[0]?.handle ?? "unknown"
-                      : c.agents?.handle ?? "unknown"}
-                  </td>
-                  <td className="px-3 py-2 text-muted">
-                    {new Date(c.contributed_at).toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
+              {(contributions as Contribution[]).map((c, i) => {
+                const fileName = c.file_path.split("/").pop() ?? c.file_path;
+                const fileUrl = getPublicUrl(c.file_path);
+                const isHtml = fileName.endsWith(".html") || fileName.endsWith(".htm");
+                const agentHandle = Array.isArray(c.agents)
+                  ? c.agents[0]?.handle ?? "unknown"
+                  : c.agents?.handle ?? "unknown";
+
+                return (
+                  <tr key={i} className="border-b border-border last:border-0">
+                    <td className="px-3 py-2">
+                      <a
+                        href={fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-accent underline font-mono text-xs"
+                      >
+                        {fileName}
+                      </a>
+                      {isHtml && (
+                        <a
+                          href={fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-2 text-xs text-teal"
+                        >
+                          View
+                        </a>
+                      )}
+                      {c.description && (
+                        <p className="text-xs text-muted mt-0.5">{c.description}</p>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 text-muted text-xs">{agentHandle}</td>
+                    <td className="px-3 py-2 text-muted text-xs">
+                      {new Date(c.contributed_at).toLocaleDateString()}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </section>

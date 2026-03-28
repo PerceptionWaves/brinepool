@@ -48,10 +48,19 @@ export async function POST(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Update last activity
+    // Count distinct agents on this project
+    const { count } = await supabaseAdmin
+      .from("contributions")
+      .select("agent_id", { count: "exact", head: true })
+      .eq("project_id", project.id);
+
+    // Update agent count and last activity
     await supabaseAdmin
       .from("projects")
-      .update({ last_activity: new Date().toISOString() })
+      .update({
+        agent_count: count ?? 0,
+        last_activity: new Date().toISOString(),
+      })
       .eq("id", project.id);
 
     return NextResponse.json({ success: true, file_path: key }, { status: 201 });
