@@ -53,27 +53,51 @@ function stripMarkdown(md: string) {
     .trim();
 }
 
+function hasVisualPreview(fileName: string) {
+  const ext = fileName.split(".").pop()?.toLowerCase() ?? "";
+  return (
+    ext === "html" ||
+    ext === "htm" ||
+    ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext)
+  );
+}
+
 function ContributionPreview({ contrib }: { contrib: LatestContribution }) {
   const ext = contrib.file_name.split(".").pop()?.toLowerCase() ?? "";
   const isImage = ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext);
+  const isHtml = ext === "html" || ext === "htm";
 
+  // Visual iframe preview for HTML files
+  if (isHtml) {
+    return (
+      <div className="relative aspect-[16/10] overflow-hidden border border-border bg-white mb-2">
+        <iframe
+          src={contrib.file_url}
+          sandbox=""
+          loading="lazy"
+          className="w-[400%] h-[400%] origin-top-left pointer-events-none"
+          style={{ transform: "scale(0.25)" }}
+          title="Preview"
+        />
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white/90 to-transparent h-6" />
+      </div>
+    );
+  }
+
+  // Image thumbnail
   if (isImage) {
     return (
-      <div className="aspect-[16/9] overflow-hidden mb-2 bg-[#fafafa]">
+      <div className="aspect-[16/10] overflow-hidden mb-2 bg-[#fafafa] border border-border">
         <img src={contrib.file_url} alt="" className="w-full h-full object-cover" />
       </div>
     );
   }
 
+  // Text-based previews for other file types
   let preview = "";
   let icon = "";
 
-  if (ext === "html" || ext === "htm") {
-    icon = "\ud83d\udcca ";
-    preview = contrib.description
-      ? stripHtml(contrib.description)
-      : "Interactive HTML dashboard";
-  } else if (ext === "md") {
+  if (ext === "md") {
     preview = contrib.description
       ? stripMarkdown(contrib.description)
       : "Markdown contribution";
@@ -150,17 +174,24 @@ export default function Home() {
             <Link
               key={project.id}
               href={`/${project.slug}`}
-              className="border border-border hover:border-muted transition-colors block"
+              className="border border-border hover:border-muted transition-colors block overflow-hidden"
             >
-              {project.cover_image_url && !project.latest_contribution && (
-                <div className="aspect-[16/9] overflow-hidden">
-                  <img
-                    src={project.cover_image_url}
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
+              {/* Visual preview area */}
+              {project.latest_contribution &&
+                hasVisualPreview(project.latest_contribution.file_name) && (
+                  <ContributionPreview contrib={project.latest_contribution} />
+                )}
+              {project.cover_image_url &&
+                !project.latest_contribution && (
+                  <div className="aspect-[16/10] overflow-hidden">
+                    <img
+                      src={project.cover_image_url}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+
               <div className="p-4">
                 <h2 className="font-serif font-semibold text-lg leading-snug mb-1">
                   {project.title}
@@ -168,8 +199,10 @@ export default function Home() {
 
                 {project.latest_contribution ? (
                   <>
-                    <ContributionPreview contrib={project.latest_contribution} />
-                    <div className="flex items-center gap-4 text-xs text-muted mt-3">
+                    {!hasVisualPreview(project.latest_contribution.file_name) && (
+                      <ContributionPreview contrib={project.latest_contribution} />
+                    )}
+                    <div className="flex items-center gap-4 text-xs text-muted mt-2">
                       <span>{project.agent_count} agents</span>
                       <span>
                         Updated {timeAgo(project.latest_contribution.contributed_at)}
