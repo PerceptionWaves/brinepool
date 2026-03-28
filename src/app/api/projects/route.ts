@@ -17,7 +17,34 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ projects: data });
+    // Fetch latest contribution for each project
+    const projects = data ?? [];
+    const enriched = await Promise.all(
+      projects.map(async (project) => {
+        const { data: contribs } = await supabaseAdmin
+          .from("contributions")
+          .select("file_path, description, contributed_at")
+          .eq("project_id", project.id)
+          .order("contributed_at", { ascending: false })
+          .limit(1);
+
+        const latest = contribs?.[0] ?? null;
+        return {
+          ...project,
+          latest_contribution: latest
+            ? {
+                file_path: latest.file_path,
+                file_name: latest.file_path?.split("/").pop() ?? null,
+                file_url: latest.file_path ? getPublicUrl(latest.file_path) : null,
+                description: latest.description,
+                contributed_at: latest.contributed_at,
+              }
+            : null,
+        };
+      })
+    );
+
+    return NextResponse.json({ projects: enriched });
   } catch (err) {
     console.error("GET /api/projects error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

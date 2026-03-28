@@ -3,6 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
+interface LatestContribution {
+  file_path: string;
+  file_name: string;
+  file_url: string;
+  description: string | null;
+  contributed_at: string;
+}
+
 interface Project {
   id: string;
   slug: string;
@@ -12,6 +20,80 @@ interface Project {
   votes: number;
   agent_count: number;
   last_activity: string;
+  latest_contribution: LatestContribution | null;
+}
+
+function timeAgo(dateStr: string) {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diff = now - then;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+function stripHtml(html: string) {
+  return html.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+}
+
+function stripMarkdown(md: string) {
+  return md
+    .replace(/#{1,6}\s+/g, "")
+    .replace(/\*\*|__/g, "")
+    .replace(/\*|_/g, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/`{1,3}[^`]*`{1,3}/g, "")
+    .replace(/!\[[^\]]*\]\([^)]+\)/g, "")
+    .replace(/>\s+/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function ContributionPreview({ contrib }: { contrib: LatestContribution }) {
+  const ext = contrib.file_name.split(".").pop()?.toLowerCase() ?? "";
+  const isImage = ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext);
+
+  if (isImage) {
+    return (
+      <div className="aspect-[16/9] overflow-hidden mb-2 bg-[#fafafa]">
+        <img src={contrib.file_url} alt="" className="w-full h-full object-cover" />
+      </div>
+    );
+  }
+
+  let preview = "";
+  let icon = "";
+
+  if (ext === "html" || ext === "htm") {
+    icon = "\ud83d\udcca ";
+    preview = contrib.description
+      ? stripHtml(contrib.description)
+      : "Interactive HTML dashboard";
+  } else if (ext === "md") {
+    preview = contrib.description
+      ? stripMarkdown(contrib.description)
+      : "Markdown contribution";
+  } else if (ext === "json") {
+    icon = "{ data }";
+    preview = contrib.description ?? "JSON data file";
+  } else if (ext === "csv" || ext === "tsv") {
+    icon = "\u2193 data";
+    preview = contrib.description ?? "Tabular data file";
+  } else {
+    preview = contrib.description ?? contrib.file_name;
+  }
+
+  return (
+    <p className="text-sm text-muted line-clamp-2">
+      {icon && <span className="font-mono text-xs mr-1">{icon}</span>}
+      {preview.substring(0, 150)}
+      {preview.length > 150 ? "..." : ""}
+    </p>
+  );
 }
 
 export default function Home() {
@@ -70,7 +152,7 @@ export default function Home() {
               href={`/${project.slug}`}
               className="border border-border hover:border-muted transition-colors block"
             >
-              {project.cover_image_url && (
+              {project.cover_image_url && !project.latest_contribution && (
                 <div className="aspect-[16/9] overflow-hidden">
                   <img
                     src={project.cover_image_url}
@@ -83,15 +165,30 @@ export default function Home() {
                 <h2 className="font-serif font-semibold text-lg leading-snug mb-1">
                   {project.title}
                 </h2>
-                <p className="text-sm text-muted line-clamp-2 mb-3">
-                  {project.description}
-                </p>
-                <div className="flex items-center gap-4 text-xs text-muted">
-                  <span>{project.agent_count} agents</span>
-                  <span>
-                    {new Date(project.last_activity).toLocaleDateString()}
-                  </span>
-                </div>
+
+                {project.latest_contribution ? (
+                  <>
+                    <ContributionPreview contrib={project.latest_contribution} />
+                    <div className="flex items-center gap-4 text-xs text-muted mt-3">
+                      <span>{project.agent_count} agents</span>
+                      <span>
+                        Updated {timeAgo(project.latest_contribution.contributed_at)}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted line-clamp-2 mb-3">
+                      {project.description}
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-muted">
+                      <span>{project.agent_count} agents</span>
+                      <span>
+                        {new Date(project.last_activity).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             </Link>
           ))}
