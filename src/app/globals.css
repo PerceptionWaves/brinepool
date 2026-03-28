@@ -1,26 +1,207 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-surface: #0e1322;
+  --color-surface-dim: #0e1322;
+  --color-surface-bright: #343949;
+  --color-surface-container-lowest: #090e1c;
+  --color-surface-container-low: #161b2b;
+  --color-surface-container: #1a1f2f;
+  --color-surface-container-high: #25293a;
+  --color-surface-container-highest: #2f3445;
+  --color-surface-variant: #2f3445;
+
+  --color-on-surface: #dee1f7;
+  --color-on-surface-variant: #c7c6cd;
+  --color-on-background: #dee1f7;
+
+  --color-primary: #00dce3;
+  --color-on-primary: #003739;
+  --color-primary-container: #001314;
+  --color-on-primary-container: #008a8e;
+  --color-primary-fixed: #54f8ff;
+  --color-primary-fixed-dim: #00dce3;
+  --color-on-primary-fixed: #002021;
+  --color-on-primary-fixed-variant: #004f52;
+  --color-inverse-primary: #00696d;
+
+  --color-secondary: #b9c6e8;
+  --color-on-secondary: #23304b;
+  --color-secondary-container: #394763;
+  --color-on-secondary-container: #a8b5d6;
+  --color-secondary-fixed: #d8e2ff;
+  --color-secondary-fixed-dim: #b9c6e8;
+  --color-on-secondary-fixed: #0d1b35;
+  --color-on-secondary-fixed-variant: #394763;
+
+  --color-tertiary: #00dce3;
+  --color-on-tertiary: #003739;
+  --color-tertiary-container: #001314;
+  --color-on-tertiary-container: #008a8f;
+  --color-tertiary-fixed: #54f8ff;
+  --color-tertiary-fixed-dim: #00dce3;
+  --color-on-tertiary-fixed: #002021;
+  --color-on-tertiary-fixed-variant: #004f52;
+
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+
+  --color-outline: #909097;
+  --color-outline-variant: #46464c;
+
+  --color-inverse-surface: #dee1f7;
+  --color-inverse-on-surface: #2b3040;
+
+  --color-surface-tint: #00dce3;
+
+  --font-headline: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ===== Base ===== */
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  font-family: var(--font-body);
+}
+
+::selection {
+  background: oklch(from var(--color-primary) l c h / 0.3);
+}
+
+/* ===== Custom Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-variant);
+  border-radius: 10px;
+}
+
+/* ===== Glassmorphism Panel ===== */
+.glass-panel {
+  background: rgba(47, 52, 69, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* ===== Hero Gradient ===== */
+.hero-gradient {
+  background: radial-gradient(circle at center, rgba(0, 220, 227, 0.08) 0%, transparent 70%);
+}
+
+/* ===== Text Glow ===== */
+.text-glow {
+  text-shadow: 0 0 15px rgba(0, 220, 227, 0.4);
+}
+
+/* ===== Bioluminescent Glow ===== */
+.biolum-glow {
+  text-shadow: 0 0 8px rgba(0, 220, 227, 0.4);
+}
+
+/* ===== Bioluminescent Pulse ===== */
+.bioluminescent-pulse {
+  box-shadow: 0 0 4px #00dce3;
+  animation: biolum-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes biolum-pulse {
+  0%, 100% {
+    box-shadow: 0 0 4px #00dce3;
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 16px #00dce3;
+    opacity: 0.8;
+  }
+}
+
+/* ===== Ambient Shadow (Abyssal Design) ===== */
+.abyssal-shadow {
+  box-shadow: 0 4px 40px 0 rgba(0, 79, 82, 0.08);
+}
+
+/* ===== Ghost Border ===== */
+.ghost-border {
+  border: 1px solid rgba(70, 70, 76, 0.15);
+}
+
+/* ===== Active Nav Glow ===== */
+.nav-active-glow {
+  box-shadow: 0 0 15px rgba(0, 220, 227, 0.2);
+}
+
+/* ===== Ping Animation ===== */
+@keyframes ping-slow {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-ping-slow {
+  animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* ===== Terminal Cursor ===== */
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: cursor-blink 1s step-end infinite;
+}
+
+/* ===== Typewriter ===== */
+@keyframes typewriter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-typewriter {
+  animation: typewriter 0.3s ease-out forwards;
+}
+
+/* ===== Fade In Up ===== */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+.animate-fade-in-up-delay-1 {
+  animation: fade-in-up 0.6s ease-out 0.1s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-up-delay-2 {
+  animation: fade-in-up 0.6s ease-out 0.2s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-up-delay-3 {
+  animation: fade-in-up 0.6s ease-out 0.3s forwards;
+  opacity: 0;
 }
