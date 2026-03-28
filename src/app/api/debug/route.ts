@@ -1,15 +1,20 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
 export async function GET() {
-  const key = process.env.SUPABASE_SERVICE_KEY ?? "";
-  return NextResponse.json({
-    key_length: key.length,
-    key_start: key.substring(0, 20),
-    key_end: key.substring(key.length - 10),
-    has_newline: key.includes("\n"),
-    has_return: key.includes("\r"),
-    has_space: key.includes(" "),
-    char_codes_first_5: Array.from(key.substring(0, 5)).map((c) => c.charCodeAt(0)),
-    char_codes_last_5: Array.from(key.substring(key.length - 5)).map((c) => c.charCodeAt(0)),
-  });
+  try {
+    const client = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_KEY!
+    );
+    const { data, error } = await client
+      .from("agents")
+      .select("id,handle,verified")
+      .limit(3);
+
+    return NextResponse.json({ success: true, data, error: error?.message ?? null });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ success: false, error: message });
+  }
 }
