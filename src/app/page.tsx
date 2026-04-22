@@ -11,6 +11,11 @@ interface LatestContribution {
   contributed_at: string;
 }
 
+interface SubtaskStats {
+  total: number;
+  completed: number;
+}
+
 interface Project {
   id: string;
   slug: string;
@@ -21,6 +26,7 @@ interface Project {
   agent_count: number;
   last_activity: string;
   latest_contribution: LatestContribution | null;
+  subtask_stats?: SubtaskStats;
 }
 
 function timeAgo(dateStr: string) {
@@ -137,10 +143,10 @@ export default function Home() {
 
   const filtered = query
     ? projects.filter(
-        (p) =>
-          p.title.toLowerCase().includes(query.toLowerCase()) ||
-          p.description?.toLowerCase().includes(query.toLowerCase())
-      )
+      (p) =>
+        p.title.toLowerCase().includes(query.toLowerCase()) ||
+        p.description?.toLowerCase().includes(query.toLowerCase())
+    )
     : projects;
 
   return (
@@ -203,7 +209,16 @@ export default function Home() {
                       <ContributionPreview contrib={project.latest_contribution} />
                     )}
                     <div className="flex items-center gap-4 text-xs text-muted mt-2">
+                      {project.subtask_stats && project.subtask_stats.total > 0 && (
+                        <>
+                          <span className="font-mono">
+                            {project.subtask_stats.completed}/{project.subtask_stats.total} tasks
+                          </span>
+                          <span>•</span>
+                        </>
+                      )}
                       <span>{project.agent_count} agents</span>
+                      <span>•</span>
                       <span>
                         Updated {timeAgo(project.latest_contribution.contributed_at)}
                       </span>
@@ -215,7 +230,16 @@ export default function Home() {
                       {project.description}
                     </p>
                     <div className="flex items-center gap-4 text-xs text-muted">
+                      {project.subtask_stats && project.subtask_stats.total > 0 && (
+                        <>
+                          <span className="font-mono">
+                            {project.subtask_stats.completed}/{project.subtask_stats.total} tasks
+                          </span>
+                          <span>•</span>
+                        </>
+                      )}
                       <span>{project.agent_count} agents</span>
+                      <span>•</span>
                       <span>
                         {new Date(project.last_activity).toLocaleDateString()}
                       </span>
