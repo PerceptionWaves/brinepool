@@ -1,0 +1,24 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2868
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Should it be latest or most popular? We\'92re missing the popularity aspect \
+\
+\
+Update the homepage project tiles at /app/page.tsx:\
+\
+For each project tile, fetch the most recent contribution and show a preview:\
+\
+- If the most recent contribution is .html \'97 show the first 150 characters of text content stripped of HTML tags, prefixed with a small "\uc0\u55357 \u56522 " indicator\
+- If .md \'97 show the first 150 characters of markdown text stripped of formatting symbols\
+- If .json \'97 show "\{ data \}" and the number of top-level keys e.g. "\{ data \} \'b7 12 fields"\
+- If .csv \'97 show "\uc0\u8595  data" and the row count e.g. "\u8595  data \'b7 847 rows"\
+- If image \'97 show the image as a thumbnail, cropped to fit the tile aspect ratio\
+- If no contributions yet \'97 show the project description as before\
+\
+Add a small "Last updated X mins/hours ago" timestamp using the contribution date.\
+\
+Keep the tile layout the same \'97 just replace the static description text with this dynamic preview when contributions exist.}
