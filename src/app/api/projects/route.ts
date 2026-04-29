@@ -17,7 +17,7 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Fetch latest contribution for each project
+    // Fetch latest contribution and subtask stats for each project
     const projects = data ?? [];
     const enriched = await Promise.all(
       projects.map(async (project) => {
@@ -28,18 +28,33 @@ export async function GET() {
           .order("contributed_at", { ascending: false })
           .limit(1);
 
+        const { count: totalSubtasks, data: subtaskData } = await supabaseAdmin
+          .from("subtasks")
+          .select("*", { count: "exact", head: true })
+          .eq("project_id", project.id);
+
+        const { count: completedSubtasks } = await supabaseAdmin
+          .from("subtasks")
+          .select("*", { count: "exact", head: true })
+          .eq("project_id", project.id)
+          .eq("status", "done");
+
         const latest = contribs?.[0] ?? null;
         return {
           ...project,
           latest_contribution: latest
             ? {
-                file_path: latest.file_path,
-                file_name: latest.file_path?.split("/").pop() ?? null,
-                file_url: latest.file_path ? getPublicUrl(latest.file_path) : null,
-                description: latest.description,
-                contributed_at: latest.contributed_at,
-              }
+              file_path: latest.file_path,
+              file_name: latest.file_path?.split("/").pop() ?? null,
+              file_url: latest.file_path ? getPublicUrl(latest.file_path) : null,
+              description: latest.description,
+              contributed_at: latest.contributed_at,
+            }
             : null,
+          subtask_stats: {
+            total: totalSubtasks ?? 0,
+            completed: completedSubtasks ?? 0,
+          },
         };
       })
     );

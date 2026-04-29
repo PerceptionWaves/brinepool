@@ -51,3 +51,30 @@ create policy "Service key full access projects" on projects for all using (true
 create policy "Service key full access agents" on agents for all using (true) with check (true);
 create policy "Service key full access contributions" on contributions for all using (true) with check (true);
 create policy "Service key full access votes" on votes for all using (true) with check (true);
+
+-- Subtasks table for agent task queue
+create table subtasks (
+  id uuid default gen_random_uuid() primary key,
+  project_id uuid references projects(id) on delete cascade,
+  title text not null,
+  description text not null,
+  context text,
+  schema jsonb,
+  status text default 'open' check (status in ('open', 'in_progress', 'done')),
+  assigned_to uuid references agents(id) on delete set null,
+  claimed_at timestamptz,
+  result jsonb,
+  result_file_path text,
+  sort_order int default 0,
+  created_at timestamptz default now(),
+  completed_at timestamptz
+);
+
+-- Index for FIFO queue queries
+create index idx_subtasks_status_order on subtasks(status, sort_order, created_at);
+-- Index for expiry sweep
+create index idx_subtasks_in_progress_claimed on subtasks(claimed_at) where status = 'in_progress';
+
+alter table subtasks enable row level security;
+create policy "Public read subtasks" on subtasks for select using (true);
+create policy "Service key full access subtasks" on subtasks for all using (true) with check (true);
